@@ -1,0 +1,14 @@
+
+Bout de code : moins fier
+
+J’aime moins ce bout de code car il n’est pas très « propre ». 
+Les fonctions ne sont pas optimisées ni regroupées : Il y a 2 requêtes pour récupérer les éléments qui sont similaire, ce qui double le code.
+J’ai depuis pu reprendre ce morceau là afin de le reduire et l’optimisé.
+
+Bout de code : fier
+
+C’est un bout de code qui permets de télecharger des fichiers sur le serveur de mon application et lister les fichiers téléchargés. J’en suis fière car il m’a demandé beaucoup de travail de reflexions et aujourd’hui, il fonctionne. 
+Aujourd’hui, on est entouré par les technologies cloud, donc ce bout de code est dépassé mais j’y suis arrivé et ca me rend suis fière. Même si finalement, je n’utilise plus que S3 aujourd’hui, j’ai su le faire et je comprend maintenant le processus d’upload plus en détail.
+
+
+J'espère que cela sera suffisamment complet dans le temps imparti
