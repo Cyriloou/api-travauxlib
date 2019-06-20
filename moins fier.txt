@@ -1,0 +1,100 @@
+//This will be used to perform full crud in the database.
+
+//Make sure to import outside of module.exports, since you want it globally accessible throughout file.
+const Sneaker = require('../models/sneakers');
+//used for populate
+const Raffle = require('../models/raffles');
+const Sneaker_Picture = require('../models/sneaker_pictures');
+
+const MongoController = require('../../Mongo/Mongo');
+
+module.exports = {
+    //Method used to read all the products.
+    getAllSneakers(req, res) {
+        MongoController.connection();
+        console.log('Request to find all sneakers');
+        Sneaker.find({})
+        .select('main_picture brand model price estimatePrice description lauchDate')
+        .sort({ lauchDate: 1 }) //-1  = 'descending'. 1 = ascending createdAt
+        .exec((err, data) => {
+            //Always do a couple of console.logs just in case of errors.
+            if(err) console.log('getAllSneakers Error------------------', err);
+            //Always log the data you are returning from the database to check if you are receiving the right data.
+            console.log('products-------------'); //, data);
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data}); //json send an object you define within the invokation of the method
+            MongoController.deconnection();
+        })
+    },
+    getAllSneakerFromBrand(req, res) {
+        MongoController.connection();
+        //Destruct the brand from the endpoint url, used to retrieve  a specific products.
+        const { brand } = req.params;
+        console.log('Request to find all sneakers from brand ', brand);
+        Sneaker.find({brand: brand})
+        .select('main_picture brand model price estimatePrice description lauchDate')
+        .sort({ lauchDate: 1 }) //-1  = 'descending'. 1 = ascending
+        .exec((err, data) => {
+            //Always do a couple of console.logs just in case of errors.
+            if(err) console.log('getAllSneakerFromBrand Error------------------', err);
+            //Always log the data you are returning from the database to check if you are receiving the right data.
+            console.log('sneakers-------------', data.length());
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data}); //json send an object you define within the invokation of the method
+            MongoController.deconnection();
+        })
+    },
+    getSneakerFromModel(req, res){
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { model } = req.params;
+        console.log('Request to find one sneaker with model ',model);
+        //Copy and paste on of the product's id to the url when testing it.
+        //Use the findById to get a specific product.
+        Sneaker.findOne({model: model})
+        .exec((err, data) => {
+            if(err) console.log('Get Single Product Error---------------', err);
+            console.log('sneaker--------------', data._id);
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data});
+            MongoController.deconnection();
+        })
+    },
+    sneakerById(req, res){
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { id } = req.params;
+        console.log('Request to find one sneaker with id ',id);
+        //Copy and paste on of the product's id to the url when testing it.
+        //Use the findById to get a specific product.
+        Sneaker.findById(id)
+        .exec((err, data) => {
+            if(err) console.log('Get Single Product Error---------------', err);
+            // sneaker = sneaker.sneakers;
+            console.log('sneaker--------------', data._id);
+            res.status(200).json({data});
+            MongoController.deconnection();
+        })
+    },
+    updateEstimatePrice(req, res){
+        console.log('updateEstimatePrice')
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { estimatePrice } = req.body;
+        const { id } = req.params;
+        console.log('Updating score for sneaker with id ',id, ' new price ', estimatePrice);
+        let mongoose = require('mongoose');
+        mongoose.set('useFindAndModify', false);
+        Sneaker.findByIdAndUpdate(
+            mongoose.Types.ObjectId(id), 
+            { estimatePrice: estimatePrice },
+            {new: true}, 
+            (err, data) => {
+                if(err) console.log('Get Error---------------', err);
+                console.log('estimatePrice--------------',estimatePrice);
+                console.log('sneaker.estimatePrice--------------',data);
+                res.status(200).json({data});
+                MongoController.deconnection();
+            });
+    }
+}

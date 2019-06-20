@@ -1,0 +1,116 @@
+import React, { Component } from 'react';
+//import css file for styling
+import './Upload.css';
+import Dropzone from 'react-dropzone'
+import PropTypes from 'prop-types';
+//Absolute Imports thanks to baseUrl
+import {UploadAxios} from 'Components/Axios/uploadAxios'; 
+import {Messages} from 'primereact/messages';
+
+const MAX_SIZE = 5242880; //5Mb
+const MIN_SIZE = 24576; //3kB
+const MAX_QTY_FILE = 5; //Nombre max de fichier en telechargement simultané
+
+class Upload extends Component {
+    constructor() {
+        super();
+        this.state = {
+            tableauPhotos: [],
+            tooManyFiles : false,
+        };
+        this.uploadAxios = new UploadAxios();
+    }
+
+    showError(message) {
+        this.messages.show({ life: 2000, closable: true,  severity: 'error', summary: "Message d'erreur", detail: `${message}` });
+    }
+
+    onDrop = (acceptedFiles) => {
+        // do nothing if no files
+        if (acceptedFiles.length === 0) {
+            return;
+        } else if(acceptedFiles.length > MAX_QTY_FILE){ 
+            // check less than 5 files
+            return this.setState({tooManyFiles: true});
+        }else {
+            this.setState({tooManyFiles: false});
+            acceptedFiles.forEach(File => {
+                //upload each file to server
+                this.uploadToServer(File);
+            });
+        }
+    }
+
+    uploadToServer(File){
+        let { tableauPhotos } = this.state;
+        //upload File to server
+        console.log('try uploadToServer ', File)
+        this.uploadAxios.postSingleUpload(File)
+        // Get back result on data
+        .then(data => {
+            //get back the picture file from data returned
+            let photo = data.data.data;
+            var path = require('path');
+            photo.path = photo.path.replace("\\",path.sep).replace("../public/", "/");
+            console.log('photo returned ', photo)
+            //add the picture to picture table
+            tableauPhotos.push(photo);
+            this.props.onUpload(photo);
+        });
+    }
+
+    render() {
+        let {tooManyFiles} = this.state;
+        let { multiple } = this.props || false;
+        return (
+            <div className="text-center mt-5">
+                <Dropzone 
+                    accept="image/png, image/jpeg, image/jpg"
+                    onDrop={this.onDrop}
+                    //1 Megabyte = 1048576 Bytes. 
+                    minSize={MIN_SIZE}
+                    maxSize={MAX_SIZE}
+                    multiple={multiple} //Allow multiple files
+                    >
+                    {({getRootProps, getInputProps, isDragActive, isDragReject, rejectedFiles, acceptedFiles}) => {
+                        const isFileTooLarge = rejectedFiles.length > 0 && rejectedFiles[0].size > MAX_SIZE;
+                        const isFileTooSmall = rejectedFiles.length > 0 && rejectedFiles[0].size < MIN_SIZE;
+                        return (
+                            <div {...getRootProps()} className="fileuploader mx-auto">
+                                <input {...getInputProps()} />
+                                {!isDragActive && 'Clique ici pour uploader un fichier !'}
+                                {isDragActive && !isDragReject && "Lâche, c'est chaud !"}
+                                {isDragReject && "Extension non valide !"}
+                                {tooManyFiles && this.showError(`dépot limité à ${MAX_QTY_FILE} fichiers`)}
+                                {isFileTooLarge && (
+                                    <div className="text-danger mt-2">
+                                        Fichier trop gros.
+                                    </div>
+                                )}
+                                {isFileTooSmall && (
+                                    <div className="text-danger mt-2">
+                                        Fichier trop petit.
+                                    </div>
+                                )}
+                                <ul className="list-group mt-2">
+                                    {rejectedFiles.length > 0 && rejectedFiles.map((rejectedFile, index) => (
+                                    <li className="list-group-item list-group-item-warning" key={'rejectedFile'+index}>
+                                        {rejectedFile.name}
+                                    </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}}
+                </Dropzone>
+                <Messages ref={(el) => this.messages = el}></Messages>
+            </div>
+        );
+    }
+};
+export default Upload;
+
+Upload.propTypes = {
+    tableauPhotos: PropTypes.array, //PropTypes.arrayOf(raffle), 
+    onUpload: PropTypes.func.isRequired,
+    multiple: PropTypes.bool,
+};
