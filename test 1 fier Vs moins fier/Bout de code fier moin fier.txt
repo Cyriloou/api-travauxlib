@@ -6,7 +6,8 @@ Bout de code : moins fier
 ########################################################
 
 J’aime moins ce bout de code car il n’est pas très « propre ». 
-Les fonctions ne sont pas optimisées ni regroupées : Il y a 2 requêtes pour récupérer les éléments qui sont similaires, ce qui double le code.
+Les fonctions ne sont pas optimisées ni regroupées : Il y a 2 requêtes pour récupérer les éléments qui sont similaires, 
+ce qui double le code.
 J’ai depuis repris ce morceau là afin de le réduire et l’optimiser.
 
 
@@ -117,8 +118,11 @@ module.exports = {
 Bout de code : fier
 ########################################################
 ########################################################
-C’est un bout de code qui permet de télecharger des fichiers sur le serveur de mon application et lister les fichiers téléchargés. J’en suis fier car il m’a demandé beaucoup de réflexions et aujourd’hui il fonctionne. 
-Aujourd’hui, on est entouré des technologies cloud, donc ce bout de code est dépassé mais j’y suis arrivé et j'en suis fier. Même si finalement, je n’utilise plus que S3 aujourd’hui, j’ai su le faire et je comprends maintenant le processus d’upload plus en détail.
+C’est un bout de code qui permet de télecharger des fichiers sur le serveur de mon application et lister les fichiers téléchargés. 
+J’en suis fier car il m’a demandé beaucoup de réflexions et aujourd’hui il fonctionne. 
+Aujourd’hui, on est entouré des technologies cloud, donc ce bout de code est dépassé mais j’y suis arrivé et j'en suis fier. 
+Même si finalement, je n’utilise plus que S3 aujourd’hui, j’ai su le faire et 
+je comprends maintenant le processus d’upload plus en détail.
 
 
 import React, { Component } from 'react';
