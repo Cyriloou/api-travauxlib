@@ -1,14 +1,241 @@
 
+########################################################
+########################################################
 Bout de code : moins fier
+########################################################
+########################################################
 
 J’aime moins ce bout de code car il n’est pas très « propre ». 
 Les fonctions ne sont pas optimisées ni regroupées : Il y a 2 requêtes pour récupérer les éléments qui sont similaire, ce qui double le code.
 J’ai depuis pu reprendre ce morceau là afin de le reduire et l’optimisé.
 
-Bout de code : fier
 
+//This will be used to perform full crud in the database.
+
+//Make sure to import outside of module.exports, since you want it globally accessible throughout file.
+const Sneaker = require('../models/sneakers');
+//used for populate
+const Raffle = require('../models/raffles');
+const Sneaker_Picture = require('../models/sneaker_pictures');
+
+const MongoController = require('../../Mongo/Mongo');
+
+module.exports = {
+    //Method used to read all the products.
+    getAllSneakers(req, res) {
+        MongoController.connection();
+        console.log('Request to find all sneakers');
+        Sneaker.find({})
+        .select('main_picture brand model price estimatePrice description lauchDate')
+        .sort({ lauchDate: 1 }) //-1  = 'descending'. 1 = ascending createdAt
+        .exec((err, data) => {
+            //Always do a couple of console.logs just in case of errors.
+            if(err) console.log('getAllSneakers Error------------------', err);
+            //Always log the data you are returning from the database to check if you are receiving the right data.
+            console.log('products-------------'); //, data);
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data}); //json send an object you define within the invokation of the method
+            MongoController.deconnection();
+        })
+    },
+    getAllSneakerFromBrand(req, res) {
+        MongoController.connection();
+        //Destruct the brand from the endpoint url, used to retrieve  a specific products.
+        const { brand } = req.params;
+        console.log('Request to find all sneakers from brand ', brand);
+        Sneaker.find({brand: brand})
+        .select('main_picture brand model price estimatePrice description lauchDate')
+        .sort({ lauchDate: 1 }) //-1  = 'descending'. 1 = ascending
+        .exec((err, data) => {
+            //Always do a couple of console.logs just in case of errors.
+            if(err) console.log('getAllSneakerFromBrand Error------------------', err);
+            //Always log the data you are returning from the database to check if you are receiving the right data.
+            console.log('sneakers-------------', data.length());
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data}); //json send an object you define within the invokation of the method
+            MongoController.deconnection();
+        })
+    },
+    getSneakerFromModel(req, res){
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { model } = req.params;
+        console.log('Request to find one sneaker with model ',model);
+        //Copy and paste on of the product's id to the url when testing it.
+        //Use the findById to get a specific product.
+        Sneaker.findOne({model: model})
+        .exec((err, data) => {
+            if(err) console.log('Get Single Product Error---------------', err);
+            console.log('sneaker--------------', data._id);
+            //After the data is received send a status code of 200 and the data via the send method.
+            res.status(200).json({data});
+            MongoController.deconnection();
+        })
+    },
+    sneakerById(req, res){
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { id } = req.params;
+        console.log('Request to find one sneaker with id ',id);
+        //Copy and paste on of the product's id to the url when testing it.
+        //Use the findById to get a specific product.
+        Sneaker.findById(id)
+        .exec((err, data) => {
+            if(err) console.log('Get Single Product Error---------------', err);
+            // sneaker = sneaker.sneakers;
+            console.log('sneaker--------------', data._id);
+            res.status(200).json({data});
+            MongoController.deconnection();
+        })
+    },
+    updateEstimatePrice(req, res){
+        console.log('updateEstimatePrice')
+        MongoController.connection();
+        //Destruct the id from the endpoint url, used to retrieve  a specific products.
+        const { estimatePrice } = req.body;
+        const { id } = req.params;
+        console.log('Updating score for sneaker with id ',id, ' new price ', estimatePrice);
+        let mongoose = require('mongoose');
+        mongoose.set('useFindAndModify', false);
+        Sneaker.findByIdAndUpdate(
+            mongoose.Types.ObjectId(id), 
+            { estimatePrice: estimatePrice },
+            {new: true}, 
+            (err, data) => {
+                if(err) console.log('Get Error---------------', err);
+                console.log('estimatePrice--------------',estimatePrice);
+                console.log('sneaker.estimatePrice--------------',data);
+                res.status(200).json({data});
+                MongoController.deconnection();
+            });
+    }
+}
+
+
+########################################################
+########################################################
+Bout de code : fier
+########################################################
+########################################################
 C’est un bout de code qui permets de télecharger des fichiers sur le serveur de mon application et lister les fichiers téléchargés. J’en suis fière car il m’a demandé beaucoup de travail de reflexions et aujourd’hui, il fonctionne. 
 Aujourd’hui, on est entouré par les technologies cloud, donc ce bout de code est dépassé mais j’y suis arrivé et ca me rend suis fière. Même si finalement, je n’utilise plus que S3 aujourd’hui, j’ai su le faire et je comprend maintenant le processus d’upload plus en détail.
 
 
 J'espère que cela sera suffisamment complet dans le temps imparti
+
+import React, { Component } from 'react';
+//import css file for styling
+import './Upload.css';
+import Dropzone from 'react-dropzone'
+import PropTypes from 'prop-types';
+//Absolute Imports thanks to baseUrl
+import {UploadAxios} from 'Components/Axios/uploadAxios'; 
+import {Messages} from 'primereact/messages';
+
+const MAX_SIZE = 5242880; //5Mb
+const MIN_SIZE = 24576; //3kB
+const MAX_QTY_FILE = 5; //Nombre max de fichier en telechargement simultané
+
+class Upload extends Component {
+    constructor() {
+        super();
+        this.state = {
+            tableauPhotos: [],
+            tooManyFiles : false,
+        };
+        this.uploadAxios = new UploadAxios();
+    }
+
+    showError(message) {
+        this.messages.show({ life: 2000, closable: true,  severity: 'error', summary: "Message d'erreur", detail: `${message}` });
+    }
+
+    onDrop = (acceptedFiles) => {
+        // do nothing if no files
+        if (acceptedFiles.length === 0) {
+            return;
+        } else if(acceptedFiles.length > MAX_QTY_FILE){ 
+            // check less than 5 files
+            return this.setState({tooManyFiles: true});
+        }else {
+            this.setState({tooManyFiles: false});
+            acceptedFiles.forEach(File => {
+                //upload each file to server
+                this.uploadToServer(File);
+            });
+        }
+    }
+
+    uploadToServer(File){
+        let { tableauPhotos } = this.state;
+        //upload File to server
+        console.log('try uploadToServer ', File)
+        this.uploadAxios.postSingleUpload(File)
+        // Get back result on data
+        .then(data => {
+            //get back the picture file from data returned
+            let photo = data.data.data;
+            var path = require('path');
+            photo.path = photo.path.replace("\\",path.sep).replace("../public/", "/");
+            console.log('photo returned ', photo)
+            //add the picture to picture table
+            tableauPhotos.push(photo);
+            this.props.onUpload(photo);
+        });
+    }
+
+    render() {
+        let {tooManyFiles} = this.state;
+        let { multiple } = this.props || false;
+        return (
+            <div className="text-center mt-5">
+                <Dropzone 
+                    accept="image/png, image/jpeg, image/jpg"
+                    onDrop={this.onDrop}
+                    //1 Megabyte = 1048576 Bytes. 
+                    minSize={MIN_SIZE}
+                    maxSize={MAX_SIZE}
+                    multiple={multiple} //Allow multiple files
+                    >
+                    {({getRootProps, getInputProps, isDragActive, isDragReject, rejectedFiles, acceptedFiles}) => {
+                        const isFileTooLarge = rejectedFiles.length > 0 && rejectedFiles[0].size > MAX_SIZE;
+                        const isFileTooSmall = rejectedFiles.length > 0 && rejectedFiles[0].size < MIN_SIZE;
+                        return (
+                            <div {...getRootProps()} className="fileuploader mx-auto">
+                                <input {...getInputProps()} />
+                                {!isDragActive && 'Clique ici pour uploader un fichier !'}
+                                {isDragActive && !isDragReject && "Lâche, c'est chaud !"}
+                                {isDragReject && "Extension non valide !"}
+                                {tooManyFiles && this.showError(`dépot limité à ${MAX_QTY_FILE} fichiers`)}
+                                {isFileTooLarge && (
+                                    <div className="text-danger mt-2">
+                                        Fichier trop gros.
+                                    </div>
+                                )}
+                                {isFileTooSmall && (
+                                    <div className="text-danger mt-2">
+                                        Fichier trop petit.
+                                    </div>
+                                )}
+                                <ul className="list-group mt-2">
+                                    {rejectedFiles.length > 0 && rejectedFiles.map((rejectedFile, index) => (
+                                    <li className="list-group-item list-group-item-warning" key={'rejectedFile'+index}>
+                                        {rejectedFile.name}
+                                    </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}}
+                </Dropzone>
+                <Messages ref={(el) => this.messages = el}></Messages>
+            </div>
+        );
+    }
+};
+export default Upload;
+
+Upload.propTypes = {
+    tableauPhotos: PropTypes.array, //PropTypes.arrayOf(raffle), 
+    onUpload: PropTypes.func.isRequired,
+    multiple: PropTypes.bool,
+};
