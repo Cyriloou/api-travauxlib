@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-//Don't forget to pass props to a stateless component as a argument.
+//Affiche les informations de la société (en haut à droite du devis)
 const TravauxLibInfo = (props) => {
     const { name, email, logoUrl, formattedSiret, siren, numeroTVA, phoneNumber, address, postalCode, city } = props.data;
     return ( 

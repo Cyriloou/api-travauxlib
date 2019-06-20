@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-//Don't forget to pass props to a stateless component as a argument.
+//Affiche le détail du lot ou de la zone travaux
 const DetailLot = (props) => {
     const { designation, description, prixUnitaireHT, quantite, unite, prixHT, tauxTVA, montantTVA, prixTTC } = props.data;
     return ( 
